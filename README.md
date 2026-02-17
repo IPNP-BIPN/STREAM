@@ -30,19 +30,19 @@ Ultra-minimalist — designed for solo bioinformaticians. Inspired by [nf-core/r
 
 ```bash
 # From a FASTQ directory (auto-detects PE/SE)
-nextflow run BIPN/STREAM --fastq_dir /path/to/fastqs --outdir results -resume
+nextflow run IPNP-BIPN/STREAM --fastq_dir /path/to/fastqs --outdir results -resume
 
 # From a samplesheet CSV
-nextflow run BIPN/STREAM --input samplesheet.csv --outdir results -resume
+nextflow run IPNP-BIPN/STREAM --input samplesheet.csv --outdir results -resume
 
 # From SRA accessions
-nextflow run BIPN/STREAM --sra_ids "SRR1234567,SRR1234568" --outdir results -resume
+nextflow run IPNP-BIPN/STREAM --sra_ids "SRR1234567,SRR1234568" --outdir results -resume
 
 # From a GEO dataset (auto-resolves GSE → SRR)
-nextflow run BIPN/STREAM --sra_ids GSE123456 --outdir results -resume
+nextflow run IPNP-BIPN/STREAM --sra_ids GSE123456 --outdir results -resume
 
 # Full pipeline with all QC options
-nextflow run BIPN/STREAM \
+nextflow run IPNP-BIPN/STREAM \
     --fastq_dir /path/to/fastqs \
     --run_salmon \
     --run_fastq_screen --fastq_screen_conf /path/to/fastq_screen.conf \

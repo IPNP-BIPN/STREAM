@@ -21,7 +21,7 @@
       8.  [Optional] Salmon — transcript quantification
       9.  MultiQC — aggregate all reports
 
-    GitHub: https://github.com/BIPN/STREAM
+    GitHub: https://github.com/IPNP-BIPN/STREAM
 ══════════════════════════════════════════════════════════════════════════════════
 */
 
@@ -677,7 +677,7 @@ workflow.onComplete {
  *      -resume
  *
  *  # Depuis GitHub :
- *  nextflow run BIPN/STREAM --fastq_dir /path/to/fastqs --outdir results -resume
+ *  nextflow run IPNP-BIPN/STREAM --fastq_dir /path/to/fastqs --outdir results -resume
  *
  * ════════════════════════════════════════════════════════════════════════════════
  */
