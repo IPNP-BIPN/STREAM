@@ -2,7 +2,6 @@
 
 **S**treamlined **T**ranscript **E**xpression & **R**NA-seq **M**apping
 
-[![STREAM CI](https://github.com/IPNP-BIPN/STREAM/actions/workflows/ci.yml/badge.svg)](https://github.com/IPNP-BIPN/STREAM/actions/workflows/ci.yml)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A523.04-23aa62.svg)](https://www.nextflow.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.XXXXXXX.svg)](https://zenodo.org/doi/10.5281/zenodo.XXXXXXX)
