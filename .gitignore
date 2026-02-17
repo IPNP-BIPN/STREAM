@@ -1,0 +1,14 @@
+# Nextflow
+.nextflow/
+.nextflow.log*
+work/
+
+# Results (generated)
+results/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
