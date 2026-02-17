@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+title: "STREAM — Streamlined Transcript Expression & RNA-seq Mapping"
+message: "If you use this pipeline, please cite it using these metadata."
+type: software
+license: MIT
+repository-code: "https://github.com/IPNP-BIPN/STREAM"
+url: "https://github.com/IPNP-BIPN/STREAM"
+authors:
+  - family-names: ""
+    given-names: "Benjamin"
+    affiliation: "IPNP-BIPN"
+keywords:
+  - nextflow
+  - rnaseq
+  - bioinformatics
+  - salmon
+  - fastqc
+  - pipeline
+  - transcript-quantification
