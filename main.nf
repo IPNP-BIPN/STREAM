@@ -322,15 +322,23 @@ process KRAKEN2 {
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-//  PROCESS 7a : Téléchargement du transcriptome Ensembl
-//  Ensembl fournit une annotation complète des gènes et transcrits humains.
-//  Le fichier cDNA FASTA contient toutes les séquences de transcrits connues
-//  pour l'assemblage spécifié (par défaut GRCh38).
-//  Ce fichier est nécessaire pour construire l'index Salmon.
-//  Le script vérifie si le fichier existe déjà (storeDir) pour éviter
-//  les téléchargements redondants.
-//  NOTE : URL hardcodée pour Homo sapiens. Pour d'autres organismes,
-//  fournir --transcriptome_fasta directement.
+//  PROCESS 7a : Ensembl transcriptome download (multi-species)
+//  Ensembl provides comprehensive annotation of genes and transcripts.
+//  The cDNA FASTA file contains all known transcript sequences for the
+//  specified genome assembly.
+//  This file is required to build the Salmon index for quasi-mapping
+//  and transcript quantification.
+//  Uses Nextflow storeDir to cache the file and avoid redundant downloads.
+//
+//  Supported species (--species flag):
+//    human (default)  → Homo_sapiens / GRCh38
+//    mouse            → Mus_musculus / GRCm39
+//    rat              → Rattus_norvegicus / mRatBN7.2
+//    zebrafish        → Danio_rerio / GRCz11
+//    drosophila       → Drosophila_melanogaster / BDGP6.46
+//    c_elegans        → Caenorhabditis_elegans / WBcel235
+//
+//  For unlisted organisms, provide --transcriptome_fasta directly.
 // ────────────────────────────────────────────────────────────────────────────────
 process DOWNLOAD_TRANSCRIPTOME {
     label 'process_low'
@@ -340,22 +348,38 @@ process DOWNLOAD_TRANSCRIPTOME {
     path "transcriptome.fa", emit: fasta
 
     script:
-    def assembly = params.genome
+    // Species lookup table: [ensembl_name, assembly]
+    def species_map = [
+        'human'      : ['Homo_sapiens',                'GRCh38'],
+        'mouse'      : ['Mus_musculus',                'GRCm39'],
+        'rat'        : ['Rattus_norvegicus',           'mRatBN7.2'],
+        'zebrafish'  : ['Danio_rerio',                 'GRCz11'],
+        'drosophila' : ['Drosophila_melanogaster',     'BDGP6.46'],
+        'c_elegans'  : ['Caenorhabditis_elegans',      'WBcel235']
+    ]
+    def sp       = params.species?.toLowerCase() ?: 'human'
+    def entry    = species_map[sp]
+    if (!entry) { error "Unknown species '${params.species}'. Use one of: ${species_map.keySet().join(', ')}  — or provide --transcriptome_fasta" }
+    def ens_name = entry[0]
+    def assembly = params.genome ?: entry[1]
     def release  = params.ensembl_release
+    def ens_low  = ens_name.toLowerCase()
     """
-    curl -L "https://ftp.ensembl.org/pub/release-${release}/fasta/homo_sapiens/cdna/Homo_sapiens.${assembly}.cdna.all.fa.gz" \\
+    curl -L "https://ftp.ensembl.org/pub/release-${release}/fasta/${ens_low}/cdna/${ens_name}.${assembly}.cdna.all.fa.gz" \\
         -o transcriptome.fa.gz
     gunzip transcriptome.fa.gz
     """
 }
 
 // ────────────────────────────────────────────────────────────────────────────────
-//  PROCESS 7b : Construction de l'index Salmon
-//  Salmon utilise un index k-mer spécialisé pour le quasi-mapping des reads
-//  vers les transcrits. Cet index accélère considérablement la quantification
-//  par rapport à l'alignement traditionnel.
-//  L'index est construit une seule fois et réutilisé pour tous les échantillons.
-//  Utilise storeDir pour persister l'index entre les exécutions du pipeline.
+//  PROCESS 7b : Salmon index construction
+//  Salmon uses a specialized k-mer-based index for quasi-mapping reads
+//  to transcripts. This index significantly speeds up the quantification
+//  process compared to traditional alignment approaches.
+//  The index is built once and reused for all samples in the experiment.
+//  -t specifies the input transcriptome FASTA, -i specifies the output index
+//  directory, and -p specifies the number of threads for index construction.
+//  Uses Nextflow storeDir to persist the index between pipeline runs.
 // ────────────────────────────────────────────────────────────────────────────────
 process SALMON_INDEX {
     label 'process_high'
@@ -480,6 +504,7 @@ workflow {
     ╚══════════════════════════════════════════════════════════════════╝
     Input        : ${params.input ?: params.fastq_dir ?: params.sra_ids}
     Output       : ${params.outdir}
+    Species      : ${params.species ?: 'human'}
     Salmon       : ${params.run_salmon}
     FastQ Screen : ${params.run_fastq_screen}
     Kraken2      : ${params.run_kraken2}
