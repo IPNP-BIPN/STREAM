@@ -148,7 +148,7 @@ process FASTQC_RAW {
 // ────────────────────────────────────────────────────────────────────────────────
 process FASTP {
     tag "${meta.id}"
-    label 'process_high'
+    label 'process_medium'
     publishDir "${params.outdir}/02_fastp", mode: 'copy', pattern: "*.{html,json}"
     publishDir "${params.outdir}/02_fastp/trimmed", mode: 'copy', pattern: "*_trimmed.fastq.gz", enabled: params.save_trimmed
 
