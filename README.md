@@ -59,7 +59,7 @@ sampleA,/path/to/sampleA_R1_001.fastq.gz,/path/to/sampleA_R2_001.fastq.gz
 sampleB,/path/to/sampleB_R1_001.fastq.gz,
 ```
 
-> `fastq_2` vide = single-end. Les fichiers multi-lanes avec le même `sample` sont traités séparément. Pour merger les lanes, pré-concaténer ou dupliquer les lignes dans le samplesheet.
+> Leave `fastq_2` empty for single-end reads. Multi-lane files with the same `sample` name are processed separately. To merge lanes, pre-concatenate or duplicate rows in the samplesheet.
 
 ---
 
@@ -68,24 +68,38 @@ sampleB,/path/to/sampleB_R1_001.fastq.gz,
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--input` | `null` | Samplesheet CSV (`sample,fastq_1,fastq_2`) |
-| `--fastq_dir` | `null` | Dossier de FASTQs (`*_R{1,2}_001.fastq.gz`) |
-| `--sra_ids` | `null` | Accessions SRA/GEO (CSV ou fichier, 1/ligne) |
-| `--outdir` | `results` | Dossier de sortie |
-| `--run_salmon` | `true` | Activer quantification Salmon |
-| `--salmon_index` | `null` | Index Salmon pré-construit |
-| `--transcriptome_fasta` | `null` | FASTA transcriptome (skip download) |
-| `--genome` | `GRCh38` | Assemblage génomique (Ensembl) |
-| `--ensembl_release` | `115` | Version Ensembl |
-| `--run_fastq_screen` | `false` | Activer FastQ Screen |
-| `--fastq_screen_conf` | `null` | Fichier config FastQ Screen |
-| `--run_kraken2` | `false` | Activer Kraken2 |
-| `--kraken2_db` | `null` | Base Kraken2 |
-| `--fastp_qualified_quality` | `20` | Phred score minimum (fastp) |
-| `--fastp_length_required` | `20` | Longueur minimum après trim |
-| `--skip_fastqc` | `false` | Désactiver FastQC |
-| `--save_trimmed` | `false` | Publier les FASTQs trimmés |
+| `--fastq_dir` | `null` | Directory of FASTQs (`*_R{1,2}_001.fastq.gz`) |
+| `--sra_ids` | `null` | SRA/GEO accessions (comma-separated or file, one per line) |
+| `--outdir` | `results` | Output directory |
+| `--species` | `human` | Species name (see supported species below) |
+| `--run_salmon` | `true` | Enable Salmon quantification |
+| `--salmon_index` | `null` | Pre-built Salmon index |
+| `--transcriptome_fasta` | `null` | Transcriptome FASTA (skips download) |
+| `--genome` | `null` | Genome assembly (auto-set from `--species`) |
+| `--ensembl_release` | `115` | Ensembl release version |
+| `--run_fastq_screen` | `false` | Enable FastQ Screen |
+| `--fastq_screen_conf` | `null` | FastQ Screen config file |
+| `--run_kraken2` | `false` | Enable Kraken2 |
+| `--kraken2_db` | `null` | Kraken2 database path |
+| `--fastp_qualified_quality` | `20` | Minimum Phred score (fastp) |
+| `--fastp_length_required` | `20` | Minimum read length after trimming |
+| `--skip_fastqc` | `false` | Disable FastQC |
+| `--save_trimmed` | `false` | Publish trimmed FASTQs |
 | `--subset_size` | `0` | FastQ Screen subset (0 = all) |
-| `--max_cpus` | auto | Nombre max de CPUs |
+| `--max_cpus` | auto | Maximum number of CPUs |
+
+### Supported Species
+
+| `--species` | Organism | Genome Assembly |
+|-------------|----------|----------------|
+| `human` | *Homo sapiens* | GRCh38 |
+| `mouse` | *Mus musculus* | GRCm39 |
+| `rat` | *Rattus norvegicus* | mRatBN7.2 |
+| `zebrafish` | *Danio rerio* | GRCz11 |
+| `drosophila` | *Drosophila melanogaster* | BDGP6.46 |
+| `c_elegans` | *Caenorhabditis elegans* | WBcel235 |
+
+The transcriptome FASTA is automatically downloaded from Ensembl based on the species. You can also provide your own with `--transcriptome_fasta`.
 
 ---
 
@@ -93,16 +107,16 @@ sampleB,/path/to/sampleB_R1_001.fastq.gz,
 
 ```
 results/
-├── 00_sra_fastq/        # FASTQs téléchargés (si SRA)
-├── 01_fastqc_raw/       # QC reads bruts
-├── 02_fastp/            # Rapports trimming + FASTQs (si --save_trimmed)
-├── 03_fastqc_clean/     # QC post-trimming
-├── 04_fastq_screen/     # Contamination screening (opt)
-├── 05_statistics/       # Stats séquences (seqtk)
-├── 06_kraken2/          # Classification taxonomique (opt)
-├── 07_salmon/           # Quantification transcripts (opt)
-├── 08_multiqc/          # Rapport agrégé interactif
-├── reference/           # Transcriptome + index Salmon (cache)
+├── 00_sra_fastq/        # Downloaded FASTQs (if SRA input)
+├── 01_fastqc_raw/       # Raw reads QC
+├── 02_fastp/            # Trimming reports + FASTQs (if --save_trimmed)
+├── 03_fastqc_clean/     # Post-trimming QC
+├── 04_fastq_screen/     # Contamination screening (optional)
+├── 05_statistics/       # Sequence stats (seqtk)
+├── 06_kraken2/          # Taxonomic classification (optional)
+├── 07_salmon/           # Transcript quantification (optional)
+├── 08_multiqc/          # Aggregated interactive report
+├── reference/           # Transcriptome + Salmon index (cached)
 └── pipeline_info/       # Nextflow timeline, trace, DAG, report
 ```
 
@@ -110,11 +124,11 @@ results/
 
 ## Requirements
 
-**Core** (toujours requis) :
+**Core** (always required):
 `fastqc` `fastp` `multiqc` `seqtk`
 
-**Optionnel** :
-`salmon` (quantification) · `fastq_screen` `bowtie2` (contamination) · `kraken2` (taxonomie) · `sra-tools` `pigz` (SRA download)
+**Optional**:
+`salmon` (quantification) · `fastq_screen` `bowtie2` (contamination) · `kraken2` (taxonomy) · `sra-tools` `pigz` (SRA download)
 
 **Nextflow** ≥ 23.04
 
@@ -122,11 +136,22 @@ results/
 
 ## Resume & Cache
 
-Le pipeline exploite nativement le cache Nextflow (`-resume`). Les étapes déjà complétées sont automatiquement sautées. Les références (transcriptome, index Salmon) sont persistées via `storeDir` et réutilisées entre exécutions.
+The pipeline natively leverages Nextflow's cache (`-resume`). Already completed steps are automatically skipped. References (transcriptome, Salmon index) are persisted via `storeDir` and reused across runs.
 
 ```bash
-# Relancer après un crash — reprend exactement là où ça s'est arrêté
+# Re-run after a crash — picks up exactly where it left off
 nextflow run main.nf --fastq_dir fastqs --outdir results -resume
+```
+
+### Mouse example
+
+```bash
+nextflow run IPNP-BIPN/STREAM \
+    --fastq_dir /path/to/mouse_fastqs \
+    --species mouse \
+    --run_salmon \
+    --outdir results_mouse \
+    -resume
 ```
 
 ---
