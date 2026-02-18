@@ -13,31 +13,55 @@ Ultra-minimalist — designed for solo bioinformaticians. Inspired by [nf-core/r
 
 ## Pipeline Overview
 
-<p align="center">
-  <img src="docs/images/STREAM_metro_map.png" alt="STREAM pipeline diagram" width="800">
-</p>
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'background': '#ffffff', 'primaryTextColor': '#231f20', 'lineColor': '#999999', 'textColor': '#231f20', 'mainBkg': '#ffffff', 'nodeBorder': '#999999'}}}%%
+flowchart TD
+    subgraph INPUT ["Input (one of)"]
+        SRA["SRR / ERR / DRR"] --> SRA_DL["SRA_DOWNLOAD"]
+        GEO["GSE / GSM"] --> RESOLVE["RESOLVE_GEO"] --> SRA_DL
+        FQ_DIR["FASTQ directory"]
+        CSV["CSV samplesheet"]
+    end
 
-<details>
-<summary>Text diagram</summary>
+    SRA_DL --> FASTQS(("FASTQs"))
+    FQ_DIR --> FASTQS
+    CSV --> FASTQS
 
+    FASTQS --> FQC1["FASTQC (raw)"]
+    FASTQS --> FASTP["FASTP"]
+
+    FASTP --> FQC2["FASTQC (clean)"]
+    FASTP --> FQS["FASTQ_SCREEN (opt)"]
+    FASTP --> SEQTK["SEQTK_STATS"]
+    FASTP --> KRK["KRAKEN2 (opt)"]
+    FASTP --> SALQ["SALMON_QUANT (opt)"]
+
+    TX_DL["DOWNLOAD_TRANSCRIPTOME"] --> SIDX["SALMON_INDEX"]
+    SIDX --> SALQ
+
+    FQC1 --> MQC["MULTIQC"]
+    FASTP --> MQC
+    FQC2 --> MQC
+    FQS --> MQC
+    KRK --> MQC
+    SALQ --> MQC
+
+    MQC --> O1["MultiQC report"]
+
+    classDef input fill:#0570b0,stroke:#0570b0,color:#fff
+    classDef process fill:#238b45,stroke:#238b45,color:#fff
+    classDef optional fill:#756bb1,stroke:#756bb1,color:#fff
+    classDef output fill:#6a51a3,stroke:#6a51a3,color:#fff
+    classDef data fill:#e6550d,stroke:#e6550d,color:#fff
+    classDef mqc fill:#41ab5d,stroke:#41ab5d,color:#fff
+
+    class SRA,GEO,FQ_DIR,CSV input
+    class SRA_DL,RESOLVE,FASTP,FQC1,FQC2,SEQTK process
+    class FQS,KRK,SALQ,TX_DL,SIDX optional
+    class O1 output
+    class FASTQS data
+    class MQC mqc
 ```
-  FASTQ / SRA / GEO
-         │
-         ▼
-  ┌─ 1. FastQC (raw) ───────────────────────────────────────┐
-  │                                                          │
-  ├─ 2. fastp (trimming + QC) ──────────────────────────────┤
-  │         │                                                │
-  │         ├─ 3. FastQC (clean) ───────────────────────────┤
-  │         ├─ 4. FastQ Screen (opt) ──────────────────────-┤
-  │         ├─ 5. Sequence stats ──────────────────────────-┤
-  │         ├─ 6. Kraken2 (opt) ───────────────────────────-┤
-  │         └─ 7→8. Salmon index + quant (opt) ────────────-┤
-  │                                                          │
-  └──────────────── 9. MultiQC (aggregation) ───────────────┘
-```
-
-</details>
 
 ## Quick Start
 
